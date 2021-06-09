@@ -5,6 +5,8 @@ local sections = {}
 local toggles = {}
 local sliders = {}
 local labels = {}
+local dropdowns = {}
+local dds = {}
 --
 local utility = {}
 --
@@ -20,6 +22,7 @@ sections.__index = sections
 toggles.__index = toggles
 sliders.__index = sliders
 labels.__index = labels
+dropdowns.__index = dropdowns
 -- // functions
 utility.new = function(instance,properties) 
 	-- // instance
@@ -40,6 +43,7 @@ function library:new(props)
 	-- // properties
 	local name = props.name or props.Name or props.UiName or props.Uiname or props.uiName or props.username or props.Username or props.UserName or props.userName or "new ui"
 	local color = props.color or props.Color or props.mainColor or props.maincolor or props.MainColor or props.Maincolor or props.Accent or props.accent or Color3.fromRGB(0,167,255)
+	local key = props.key or props.Key or props.toggle or props.Toggle or props.turn or props.Turn or "RightShift"
 	-- // variables
 	local window = {}
 	-- // main
@@ -143,6 +147,58 @@ function library:new(props)
 			Parent = buttons
 		}
 	)
+	--
+	local drag = false
+	local x,y = 0,0
+	--
+	top.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			drag = true
+			x,y = plr:GetMouse().X-top.AbsolutePosition.X,plr:GetMouse().Y-top.AbsolutePosition.Y
+			mainframe:TweenPosition(UDim2.new(0,plr:GetMouse().X-x,0,plr:GetMouse().Y-y),Enum.EasingDirection.Out,Enum.EasingStyle.Quad,0.1,true)
+		end
+	end)
+	--
+	top.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			drag = false
+		end
+	end)
+	--
+	uis.InputChanged:Connect(function()
+		if drag then
+			mainframe:TweenPosition(UDim2.new(0,plr:GetMouse().X-x,0,plr:GetMouse().Y-y),Enum.EasingDirection.Out,Enum.EasingStyle.Quad,0.1,true)
+		end
+	end)
+	--
+	local lastpos = nil
+	local cooldown = false
+	--
+	uis.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Keyboard then
+			if input.KeyCode == Enum.KeyCode[key] then
+				if screen.Enabled then
+					if cooldown == false then
+						cooldown = true
+						lastpos = mainframe.Position
+						mainframe:TweenPosition(UDim2.new(-1.25,0,lastpos.Y.Scale,lastpos.Y.Offset),Enum.EasingDirection.Out,Enum.EasingStyle.Quad,0.2,true)
+						wait(0.25)
+						screen.Enabled = false
+						wait(0.1)
+						cooldown = false
+					end
+				else
+					if cooldown == false then
+						cooldown = true
+						screen.Enabled = true
+						mainframe:TweenPosition(lastpos,Enum.EasingDirection.Out,Enum.EasingStyle.Quad,0.2,true)
+						wait(0.35)
+						cooldown = false
+					end
+				end
+			end
+		end
+	end)
 	-- // window tbl
 	window = {
 		["screen"] = screen,
@@ -357,10 +413,10 @@ function pages:section(props)
 			Size = UDim2.new(1,-10,1,-15),
 			Position = UDim2.new(0.5,0,0,10),
 			CanvasSize = UDim2.new(0,0,0,0),
-			ScrollBarImageTransparency = 0.5,
+			ScrollBarImageTransparency = 1,
 			BorderSizePixel = 0,
 			ScrollBarImageColor3 = Color3.fromRGB(0,0,0),
-			ScrollBarThickness = 8,
+			ScrollBarThickness = 0,
 			AutomaticCanvasSize = "Y",
 			Parent = frame
 		}
@@ -545,7 +601,7 @@ function sections:slider(props)
 		"Frame",
 		{
 			BackgroundTransparency = 1,
-			Size = UDim2.new(1,-20,0,35),
+			Size = UDim2.new(1,-20,0,30),
 			Parent = self.content
 		}
 	)
@@ -558,7 +614,7 @@ function sections:slider(props)
 			BorderMode = "Outline",
 			BorderSizePixel = 1,
 			Size = UDim2.new(1,0,0,10),
-			Position = UDim2.new(0,0,0,20),
+			Position = UDim2.new(0,0,0,15),
 			Parent = holder
 		}
 	)
@@ -628,7 +684,7 @@ function sections:slider(props)
 		"TextLabel",
 		{
 			BackgroundTransparency = 1,
-			Size = UDim2.new(1,0,0,20),
+			Size = UDim2.new(1,0,0,10),
 			Position = UDim2.new(0,0,0,0),
 			Font = "Ubuntu",
 			Text = name,
@@ -644,7 +700,7 @@ function sections:slider(props)
 		"TextLabel",
 		{
 			BackgroundTransparency = 1,
-			Size = UDim2.new(1,0,0,20),
+			Size = UDim2.new(1,0,0,10),
 			Position = UDim2.new(0,0,0,0),
 			Font = "Ubuntu",
 			Text = def..measurement.."/"..max..measurement,
@@ -690,8 +746,10 @@ function sections:slider(props)
 		local result = (max-min)/frame.AbsoluteSize.X*size+min
 		if roundnum then
 			value.Text = math.floor(result)..measurement.."/"..max..measurement
+			callback(math.floor(result))
 		else
 			value.Text = utility.round(result,2)..measurement.."/"..max..measurement
+			callback(utility.round(result,2))
 		end
 	end)
 	--
@@ -702,8 +760,10 @@ function sections:slider(props)
 			local result = (max-min)/frame.AbsoluteSize.X*size+min
 			if roundnum then
 				value.Text = math.floor(result)..measurement.."/"..max..measurement
+				callback(math.floor(result))
 			else
 				value.Text = utility.round(result,2)..measurement.."/"..max..measurement
+				callback(utility.round(result,2))
 			end
 		end
 	end)
@@ -738,8 +798,24 @@ function sections:label(props)
 		"Frame",
 		{
 			BackgroundTransparency = 1,
-			Size = UDim2.new(1,-20,0,15),
+			Size = UDim2.new(1,-20,0,20),
 			Parent = self.content
+		}
+	)
+	--
+	local title = utility.new(
+		"TextLabel",
+		{
+			AnchorPoint = Vector2.new(0,0),
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1,0,0,15),
+			Position = UDim2.new(0,0,0,0),
+			Font = "Ubuntu",
+			Text = name,
+			TextColor3 = Color3.fromRGB(230,230,230),
+			TextSize = 10,
+			TextStrokeTransparency = 0.75,
+			Parent = holder
 		}
 	)
 	--
@@ -753,7 +829,7 @@ function sections:label(props)
 			BorderSizePixel = 1,
 			Size = UDim2.new(0,0,0,1),
 			Position = UDim2.new(1,0,0.5,0),
-			Parent = holder
+			Parent = title
 		}
 	)
 	--
@@ -766,23 +842,7 @@ function sections:label(props)
 			BorderSizePixel = 1,
 			Size = UDim2.new(0,0,0,1),
 			Position = UDim2.new(0,0,0.5,0),
-			Parent = holder
-		}
-	)
-	--
-	local title = utility.new(
-		"TextLabel",
-		{
-			AnchorPoint = Vector2.new(0,0),
-			BackgroundTransparency = 1,
-			Size = UDim2.new(1,0,1,0),
-			Position = UDim2.new(0,0,0,0),
-			Font = "Ubuntu",
-			Text = name,
-			TextColor3 = Color3.fromRGB(230,230,230),
-			TextSize = 10,
-			TextStrokeTransparency = 0.75,
-			Parent = holder
+			Parent = title
 		}
 	)
 	--
@@ -797,6 +857,228 @@ function sections:label(props)
 	-- // metatable indexing + return
 	setmetatable(label, labels)
 	return label
+end
+--
+function sections:dropdown(props)
+	-- // properties
+	local name = props.name or props.Name or props.title or props.Title or "new page"
+	local callback = props.callback or props.Callback or props.CallBack or props.callBack or function()end
+	local options = props.options or props.Options or props.option or props.Option or props.dropdown or props.Dropdown or {}
+	local def = props.def or props.Def or props.default or props.Default
+	local current = "..."
+	if def ~= nil and tonumber(def) > 0 then
+		if options[def] then
+			current = options[def]
+		end
+	end
+	-- // main
+	local holder = utility.new(
+		"Frame",
+		{
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1,-20,0,20),
+			ZIndex = 2,
+			Parent = self.content
+		}
+	)
+	--
+	local button = utility.new(
+		"TextButton",
+		{
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1,0,0,20),
+			Position = UDim2.new(0,0,0,0),
+			Text = "",
+			Parent = holder
+		}
+	)
+	--
+	local frame = utility.new(
+		"Frame",
+		{
+			BackgroundColor3 = Color3.fromRGB(19,19,19),
+			BorderColor3 = Color3.fromRGB(4,4,4),
+			BorderMode = "Outline",
+			BorderSizePixel = 1,
+			Size = UDim2.new(1,0,0,15),
+			Position = UDim2.new(0,0,0,0),
+			Parent = holder
+		}
+	)
+	--
+	local title = utility.new(
+		"TextLabel",
+		{
+			AnchorPoint = Vector2.new(0.5,0),
+			BackgroundTransparency = 1,
+			Size = UDim2.new(0.96,0,0,15),
+			Position = UDim2.new(0.5,0,0,0),
+			Font = "Ubuntu",
+			Text = name.." ( "..current.." )",
+			TextColor3 = Color3.fromRGB(230,230,230),
+			TextSize = 10,
+			TextStrokeTransparency = 0.75,
+			TextXAlignment = "Left",
+			Parent = holder
+		}
+	)
+	--
+	local line = utility.new(
+		"TextLabel",
+		{
+			AnchorPoint = Vector2.new(0.5,0),
+			BackgroundTransparency = 1,
+			Size = UDim2.new(0.96,0,0,15),
+			Position = UDim2.new(0.5,0,0,0),
+			Font = "Ubuntu",
+			Text = "--",
+			TextColor3 = Color3.fromRGB(230,230,230),
+			TextSize = 10,
+			TextStrokeTransparency = 0.75,
+			TextXAlignment = "Right",
+			Parent = holder
+		}
+	)
+	--
+	local optionholder = utility.new(
+		"Frame",
+		{
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1,0,1,0),
+			Position = UDim2.new(0,0,1,0),
+			Parent = frame
+		}
+	)
+	--
+	local dropdown = {
+		["holder"] = holder,
+		["title"] = title,
+		["name"] = name,
+		["current"] = current,
+		["options"] = options,
+		["openoptions"] = {},
+		["optionsopen"] = false
+	}
+	--
+	local makeoptions = function(opt)
+		for i,v in pairs(opt) do
+			local optionholderframe = utility.new(
+				"Frame",
+				{
+					BackgroundTransparency = 1,
+					Size = UDim2.new(1,0,1,0),
+					Position = UDim2.new(0,0,i-1,0),
+					ZIndex = 2,
+					Parent = optionholder
+				}
+			)
+			--
+			local optionbutton = utility.new(
+				"TextButton",
+				{
+					BackgroundTransparency = 1,
+					Size = UDim2.new(1,0,1,0),
+					Position = UDim2.new(0,0,0,0),
+					Text = "",
+					Parent = optionholderframe
+				}
+			)
+			--
+			local optionframe = utility.new(
+				"Frame",
+				{
+					BackgroundColor3 = Color3.fromRGB(19,19,19),
+					BorderColor3 = Color3.fromRGB(4,4,4),
+					BorderMode = "Inset",
+					BorderSizePixel = 1,
+					Size = UDim2.new(1,0,1,0),
+					Position = UDim2.new(0,0,0,0),
+					Parent = optionholderframe
+				}
+			)
+			--
+			local titlecol = Color3.fromRGB(230,230,230)
+			--
+			if v == dropdown.current then
+				titlecol = self.window.color
+			end
+			--
+			local optiontitle = utility.new(
+				"TextLabel",
+				{
+					AnchorPoint = Vector2.new(0.5,0),
+					BackgroundTransparency = 1,
+					Size = UDim2.new(0.96,0,0,15),
+					Position = UDim2.new(0.5,0,0,0),
+					Font = "Ubuntu",
+					Text = "  "..v,
+					TextColor3 = titlecol,
+					TextSize = 10,
+					TextStrokeTransparency = 0.75,
+					TextXAlignment = "Left",
+					Parent = optionholderframe
+				}
+			)
+			--
+			local option = {
+				["holder"] = optionholderframe,
+				["frame"] = optionframe,
+				["button"] = optionbutton,
+				["title"] = optiontitle,
+				["callback"] = callback
+			}
+			--
+			table.insert(dropdown.openoptions,option)
+			--
+			optionbutton.MouseButton1Down:Connect(function()
+				callback(v)
+				dropdown.current = v
+				title.Text = name.." ( "..dropdown.current.." )"
+				for i,v in pairs(dropdown.openoptions) do
+					v.holder:Remove()
+				end
+				holder.Size = UDim2.new(1,-20,0,20)
+				dropdown.openoptions = {}
+				dropdown.optionsopen = false
+			end)
+			--
+			optionbutton.MouseEnter:Connect(function()
+				ts:Create(optionframe, TweenInfo.new(0.1,Enum.EasingStyle.Quad,Enum.EasingDirection.Out), {BorderColor3 = self.window.color}):Play()
+			end)
+			--
+			optionbutton.MouseLeave:Connect(function()
+				ts:Create(optionframe, TweenInfo.new(0.1,Enum.EasingStyle.Quad,Enum.EasingDirection.Out), {BorderColor3 = Color3.fromRGB(4,4,4)}):Play()
+			end)
+		end
+	end
+	--
+	button.MouseButton1Down:Connect(function()
+		if dropdown.optionsopen then
+			for i,v in pairs(dropdown.openoptions) do
+				v.holder:Remove()
+			end
+			holder.Size = UDim2.new(1,-20,0,20)
+			dropdown.openoptions = {}
+			dropdown.optionsopen = false
+		else
+			makeoptions(dropdown.options)
+			holder.Size = UDim2.new(1,-20,0,20+(15*#dropdown.options))
+			self.content.CanvasPosition = Vector2.new(0,self.content.CanvasPosition.Y-1)
+			ts:Create(self.content, TweenInfo.new(0.1,Enum.EasingStyle.Quad,Enum.EasingDirection.Out), {CanvasPosition = Vector2.new(0,self.content.CanvasPosition.Y+(15*#dropdown.options))}):Play()
+			dropdown.optionsopen = true
+		end
+	end)
+	--
+	button.MouseEnter:Connect(function()
+		ts:Create(frame, TweenInfo.new(0.1,Enum.EasingStyle.Quad,Enum.EasingDirection.Out), {BorderColor3 = self.window.color}):Play()
+	end)
+	--
+	button.MouseLeave:Connect(function()
+		ts:Create(frame, TweenInfo.new(0.1,Enum.EasingStyle.Quad,Enum.EasingDirection.Out), {BorderColor3 = Color3.fromRGB(4,4,4)}):Play()
+	end)
+	-- // metatable indexing + return
+	setmetatable(dropdown, dropdowns)
+	return dropdown
 end
 --
 function toggles:set(bool,callback)
@@ -832,48 +1114,35 @@ function labels:set(val)
 	self.line1.Size = UDim2.new(0.5,-((self.title.TextBounds.X/2)+10),0,1)
 	self.line2.Size = self.line1.Size
 end
--- // init
-local xenon = library:new({name = "Xenon V2",accent = Color3.fromRGB(255, 59, 104)})
 --
-local aimbot = xenon:page({name = "aimbot"})
-local sfasdf = xenon:page({name = "rage"})
-local aaaasd = xenon:page({name = "legit"})
-local aaaasd = xenon:page({name = "misc"})
-local ccc = xenon:page({name = "visuals"})
-local aaaasd = xenon:page({name = "settings"})
-local aaaasd = xenon:page({name = "config"})
---
-local hgfg = ccc:section({name = "hello"})
-local xd = ccc:section({name = "new section",side = "right"})
-local asrweqe = aimbot:section({name = "hi man",side = "full"})
---
-local newt = hgfg:toggle({name = "hi man"})
-local newtt = xd:toggle({name = 125347645376435,def = true})
-local newttt = xd:toggle({name = "askjgfhasdjghjksdghjk",def = false})
---
-local slider = hgfg:slider({name = "new slider",measurement = "%",decimals = false,def = 55,min = 25,callback = function(val)print(val)end})
-local sdsa = hgfg:slider({name = "dxdd",max = 1250,decimals = false,def = 10,min = 50,callback = function(val)print(val)end})
-local safdfafas = hgfg:slider({name = "new slider",measurement = "ft",decimals = false,def = 25,min = 10,max = 60,callback = function(val)print(val)end})
-local sagvasg = hgfg:slider({name = "dxdd",max = 10,measurement = "cm",decimals = true,def = 5,min = 2,callback = function(val)print(val)end})
---
-local label = hgfg:label({name = "hello"})
---
-spawn(function()
-	while true do wait(0.05)
-		label:set(math.random(1,19900000))
-		slider:set(math.random(1,250))
-		sdsa:set(math.random(1,250))
-		safdfafas:set(math.random(1,250))
-		sagvasg:set(math.random(1,250))
+function dropdowns:set(options,default,callback)
+	local options = options or {}
+	local current = "..."
+	--
+	if default ~= nil and tonumber(default) > 0 then
+		if options[default] then
+			current = options[default]
+		end
 	end
-end)
---
-ccc:open()
-newt:set(true)
---
-wait(2.5)
-slider:set(40)
---
-wait(25)
---
-xenon.screen:Remove()
+	--
+	if self.optionsopen then
+		for i,v in pairs(self.openoptions) do
+			v.holder:Remove()
+		end
+		self.holder.Size = UDim2.new(1,-20,0,20)
+		self.openoptions = {}
+		self.optionsopen = false
+	end
+	--
+	self.default = current
+	self.options = options
+	self.current = current
+	self.title.Text = self.name.." ( "..self.current.." )"
+	if callback then
+		if current ~= "..." then
+			self.callback(current)
+		end
+	end
+end
+-- // init
+return library
