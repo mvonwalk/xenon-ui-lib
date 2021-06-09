@@ -1,0 +1,1 @@
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/coolmatt72/xenon-ui-lib/main/main"))()
