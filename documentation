@@ -1,0 +1,180 @@
+-- xenon ui lib documentation envo 9/6/2021
+library ~= xenon ui lib ls/script
+--
+library:new(table)
+table = {
+    name = string,
+    accent = color
+}
+--[[
+creates a new window
+name for window must be a string/number value
+color for accent must be a color value
+]]
+--[[
+return
+table = {
+    screengui,
+    mainframe,
+    topbar,
+    title,
+    contentholder,
+    tabsholder,
+    buttonsholder,
+    color
+}
+]]
+--
+library:page(table)
+table = {
+    name = string
+}
+--[[
+creates a new page
+name for page must be a string/number value
+]]
+--[[
+return
+table = {
+    page,
+    window,
+    buttonholder,
+    title,
+    button,
+    buttontoggle
+}
+]]
+--
+page:open(bool)
+--[[
+opens a page
+bool for arguements must be a bool value
+page index is the table returned to you by making a new page
+new page must be variabilised such as :
+local page = library:page()
+]]
+--
+page:section(table)
+table = {
+    name = string,
+    sectiontype = string
+}
+--[[
+creates a section inside of a page
+name for page must be a string/number value
+section type must be either "left" or "right",
+anything besides left or right will create a full section.
+]]
+--[[
+return
+table = {
+    window,
+    contentholder,
+    title,
+    mainframe
+}
+]]
+--
+sections:toggle(table)
+table = {
+    name = string,
+    def = bool,
+    callback = function
+}
+--[[
+creates a new toggle inside of a section
+name for toggle must be a string/number value
+def for toggle must be a bool value
+callback for toggle must be a function (used to return a bool value back to the user)
+]]
+--[[
+return
+table = {
+    window,
+    holder,
+    frame,
+    title,
+    toggled,
+    button,
+    callback,
+    istoggled
+}
+]]
+--
+toggle:set(value,callback)
+--[[
+sets a toggle to a specified value
+value must be a bool value
+callback must be a bool value
+callback makes it so that when you use :set on a toggle it will callback the specified value
+]]
+--
+sections:slider(table)
+table = {
+    name = string,
+    def = number,
+    max = number,
+    min = number,
+    rounded = bool,
+    measurement = string,
+    callback = function
+}
+--[[
+creates a new slider inside of a section
+name for slider must be a string/number value
+def for slider must be a number value
+max for slider must be a number value
+min for slider must be a number value
+rounded for slider must be a bool value
+measurement must be a string value (the measurement after the returned value such as : ..."measurement", example : 10ft)
+callback for slider must be a function (used to return a bool value back to the user)
+]]
+--[[
+return
+table = {
+    holding,
+    holder,
+    slider,
+    title,
+    value,
+    fill,
+    round,
+    max,
+    min,
+    measurement,
+    rounded,
+    callback
+}
+]]
+--
+slider:set(value,callback)
+--[[
+sets a slider to a specified value
+value must be a number value
+callback must be a bool value
+callback makes it so that when you use :set on a toggle it will callback the specified value
+]]
+--
+sections:label(table)
+table = {
+    name = string
+}
+--[[
+creates a new label inside of a section
+name for label must be a string/number value
+]]
+--[[
+return
+table = {
+    title,
+    line1,
+    line2
+}
+]]
+--
+label:set(value)
+--[[
+sets a label to a specified value
+value must be a string/number value
+]]
+--
