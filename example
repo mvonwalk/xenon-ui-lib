@@ -24,6 +24,11 @@ local aimbot_walls = aimbot_config:toggle({name = "Wall check",callback = functi
 local aimbot_reaction = aimbot_config:slider({name = "Reaction time",measurement = "ms",decimals = false,def = 150,min = 5,max = 2000,callback = function(val)print(val)end})
 local aimbot_aimpart = aimbot_config:dropdown({name = "Aim part",def = 1,options = {"Head","Torso","Arms","Legs","Random"},callback = function(val)print(val)end})
 --
+local aimbot_smooth = aimbot_misc:toggle({name = "Aimbot smoothness",callback = function(bool)print(bool)end})
+local aimbot_smoothness = aimbot_misc:slider({name = "Smoothness ammount",def = 2,min = 1,max = 10,callback = function(val)print(val)end})
+local aimbot_otherlabel = aimbot_misc:label({name = "other"})
+local aimbot_multipoint = aimbot_misc:dropdown({name = "Multipoint",def = 4,options = {"Head","Torso","Arms","Legs","Random"},callback = function(val)print(val)end})
+--
 local rage_toggle = rage_main:toggle({name = "Ragebot enabled",callback = function(bool)print(bool)end})
 local rage_reaction = rage_main:slider({name = "Reaction time",def = 2,min = 1,max = 10,callback = function(val)print(val)end})
 local rage_hitpart = rage_main:dropdown({name = "Hit part",def = 2,options = {"Head","Torso","Arms","Legs","Random"},callback = function(val)print(val)end})
